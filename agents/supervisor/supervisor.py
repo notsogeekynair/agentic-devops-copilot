@@ -1,25 +1,31 @@
+from agents.spec_writer.agent import SpecWriterAgent
+
 class SupervisorAgent:
-    def __init__(self, agent_runtime):
+    def __init__(self, agent_runtime=None):
         self.runtime = agent_runtime
+        self.spec_writer = SpecWriterAgent()
 
     def handle_ticket(self, ticket):
-        # 1. Break task into subtasks
-        subtasks = self.create_subtasks(ticket)
+        # 1) Always start with spec generation
+        spec_result = self.spec_writer.run({"ticket": ticket})
 
-        # 2. Route subtasks to the right worker agent
-        results = []
-        for task in subtasks:
-            result = self.runtime.delegate(
-                worker_id=task["worker"],
-                input=task["payload"]
-            )
-            results.append(result)
+        # 2) Pass paths forward as context to other agents
+        context = {
+            "ticket": ticket,
+            "spec_md_path": spec_result["outputs"]["spec_md"],
+            "openapi_path": spec_result["outputs"]["openapi_yaml"]
+        }
 
-        # 3. Aggregate results
+        # Example: you can still delegate to your runtime if you wire it later
+        results = [ {"agent": "spec_writer_agent", "result": spec_result} ]
+        # TODO: delegate to codegen/devops/deploy/metrics with 'context'
+
         return {
             "status": "completed",
-            "outputs": results
+            "outputs": results,
+            "context": context
         }
+
 
     def create_subtasks(self, ticket):
         return [

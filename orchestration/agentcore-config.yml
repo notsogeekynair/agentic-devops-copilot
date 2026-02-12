@@ -27,7 +27,7 @@ supervisor:
 
 workers:
   - id: spec_writer_agent
-    entrypoint: "agents/spec-writer/agent.py"
+    entrypoint: "agents/spec_writer/agent.py"
     tools:
       - qdeveloper_specgen
       - github_client

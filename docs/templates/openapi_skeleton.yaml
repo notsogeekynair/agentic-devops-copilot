@@ -1,0 +1,15 @@
+openapi: 3.0.3
+info:
+  title: {{title}} API
+  version: 1.0.0
+servers:
+  - url: /api
+paths:
+  /health:
+    get:
+      summary: Liveness probe
+      responses:
+        '200':
+          description: OK
+components:
+  schemas: {}
