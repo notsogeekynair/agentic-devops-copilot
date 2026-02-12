@@ -1,0 +1,76 @@
+agent_core:
+  version: "1.0"
+  description: "Agentic DevOps Copilot - Multi Agent System"
+  memory:
+    type: dynamodb
+    table: agentic_devops_memory
+    ttl_hours: 48
+
+supervisor:
+  id: supervisor_agent
+  entrypoint: "agents/supervisor/supervisor.py"
+  permissions:
+    - codegen
+    - read_specs
+    - write_specs
+    - iac_ops
+    - deployment_ops
+    - read_ticket
+  routing:
+    strategy: "task-based"
+    workers:
+      - spec_writer_agent
+      - code_generator_agent
+      - devops_iac_agent
+      - deployment_agent
+      - metrics_agent
+
+workers:
+  - id: spec_writer_agent
+    entrypoint: "agents/spec-writer/agent.py"
+    tools:
+      - qdeveloper_specgen
+      - github_client
+    responsibilities:
+      - "Generate technical specification"
+      - "Create API contracts"
+      - "Define folder structure"
+
+  - id: code_generator_agent
+    entrypoint: "agents/code-generator/agent.py"
+    tools:
+      - qdeveloper_codegen
+      - qdeveloper_debugger
+    responsibilities:
+      - "Generate codebase"
+      - "Write tests"
+      - "Fix errors"
+
+  - id: devops_iac_agent
+    entrypoint: "agents/devops-iac/agent.py"
+    tools:
+      - kiro_cli
+      - terraform
+      - cdk
+    responsibilities:
+      - "Generate IaC"
+      - "Configure CI/CD pipeline"
+
+  - id: deployment_agent
+    entrypoint: "agents/deployment/agent.py"
+    tools:
+      - aws_cli
+      - lambda_client
+      - ecs_client
+    responsibilities:
+      - "Deploy application"
+      - "Run smoke tests"
+
+  - id: metrics_agent
+    entrypoint: "agents/metrics/agent.py"
+    tools:
+      - cloudwatch_client
+      - s3_client
+    responsibilities:
+      - "Track productivity"
+      - "Generate reports"
