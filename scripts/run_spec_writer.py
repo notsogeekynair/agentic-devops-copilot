@@ -1,5 +1,9 @@
 import json
-from agents.spec-writer.agent import SpecWriterAgent
+
+import sys, os
+sys.path.append(os.path.abspath("."))  # ensures repo root is on sys.path
+
+from agents.spec_writer.agent import SpecWriterAgent
 
 if __name__ == "__main__":
     ticket = {

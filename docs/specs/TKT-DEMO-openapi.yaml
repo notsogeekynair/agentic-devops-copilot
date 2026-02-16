@@ -1,0 +1,103 @@
+openapi: 3.0.3
+info:
+  title: Customer Alerts API
+  version: 1.0.0
+servers:
+  - url: /api
+paths:
+  /health:
+    get:
+      summary: Liveness probe
+      responses:
+        '200':
+          description: OK
+  /alerts:
+    post:
+      summary: Create an alert
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAlertRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+    get:
+      summary: List alerts by user
+      parameters:
+        - in: query
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: User ID to list alerts for
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alert'
+  /alerts/{id}:
+    patch:
+      summary: Mark alert as read
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                read:
+                  type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+components:
+  schemas:
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        type:
+          type: string
+          enum: [INFO, WARNING, CRITICAL]
+        message:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        read:
+          type: boolean
+          default: false
+    CreateAlertRequest:
+      type: object
+      required: [userId, type, message]
+      properties:
+        userId:
+          type: string
+        type:
+          type: string
+          enum: [INFO, WARNING, CRITICAL]
+        message:
+          type: string

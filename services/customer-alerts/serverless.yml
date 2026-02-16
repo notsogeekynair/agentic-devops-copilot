@@ -1,0 +1,73 @@
+service: customer-alerts
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: us-east-1
+  stage: dev
+  environment:
+    ALERTS_TABLE: ${self:service}-${self:provider.stage}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:Query
+            - dynamodb:UpdateItem
+            - dynamodb:Scan
+          Resource:
+            - !GetAtt AlertsTable.Arn
+
+functions:
+  health:
+    handler: handler.health
+    events:
+      - http:
+          path: /api/health
+          method: get
+  post_alerts:
+    handler: handler.create_alert
+    events:
+      - http:
+          path: /api/alerts
+          method: post
+  get_alerts:
+    handler: handler.list_alerts
+    events:
+      - http:
+          path: /api/alerts
+          method: get
+  patch_alerts_id:
+    handler: handler.update_alert
+    events:
+      - http:
+          path: /api/alerts/{id}
+          method: patch
+
+resources:
+  Resources:
+    AlertsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+
+plugins:
+  - serverless-python-requirements
+
+package:
+  patterns:
+    - '!node_modules/**'
+    - '!__pycache__/**'
